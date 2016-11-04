@@ -2,21 +2,21 @@
 
 Bash Shell to install gdrive on linux X64
 
-It installs gdrive-linux-x64 on the directory, makes it executable and prompt for the verification code.
+  It installs gdrive-linux-x64 on the directory, makes it executable and prompt for the verification code.
 
-Gdrive 2 instructions from prasmussen/gdrive
+ Gdrive 2 instructions from prasmussen/gdrive
 
-Gdrive 2 is more or less a full rewrite and is not backwards compatible with gdrive 1 as all the command line arguments has changed slightly. Gdrive 2 uses version 3 of the google drive api and my google-api-go-client fork is no longer needed.
+  Gdrive 2 is more or less a full rewrite and is not backwards compatible with gdrive 1 as all the command line arguments has changed slightly. Gdrive 2 uses version 3 of the google drive api and my google-api-go-client fork is no longer needed.
 
-Syncing
+  Syncing
 
-Gdrive 2 supports basic syncing. It only syncs one way at the time and works more like rsync than e.g. dropbox. Files that are synced to google drive are tagged with an appProperty so that the files on drive can be traversed faster. This means that you can't upload files with gdrive upload into a sync directory as the files would be missing the sync tag, and would be ignored by the sync commands. The current implementation is slow and uses a lot of memory if you are syncing many files. Currently only one file is uploaded at the time, the speed can be improved in the future by uploading several files concurrently. To learn more see usage and the examples below.
+  Gdrive 2 supports basic syncing. It only syncs one way at the time and works more like rsync than e.g. dropbox. Files that are synced to google drive are tagged with an appProperty so that the files on drive can be traversed faster. This means that you can't upload files with gdrive upload into a sync directory as the files would be missing the sync tag, and would be ignored by the sync commands. The current implementation is slow and uses a lot of memory if you are syncing many files. Currently only one file is uploaded at the time, the speed can be improved in the future by uploading several files concurrently. To learn more see usage and the examples below.
 
-.gdriveignore
+  .gdriveignore
 
 Placing a .gdriveignore in the root of your sync directory can be used to skip certain files from being synced. .gdriveignore follows the same rules as .gitignore.
 
-Usage
+  Usage
 
 gdrive [global] list [options]                                 List files
 gdrive [global] download [options] <fileId>                    Download file or directory
@@ -49,16 +49,16 @@ gdrive help <command>                                          Print command hel
 gdrive help <command> <subcommand>                             Print subcommand help
 List files
 
-gdrive [global] list [options]
+  gdrive [global] list [options]
 
-global:
-  -c, --config <configDir>         Application path, default: /Users/<user>/.gdrive
-  --refresh-token <refreshToken>   Oauth refresh token used to get access token (for advanced users)
-  --access-token <accessToken>     Oauth access token, only recommended for short-lived requests because of short lifetime (for advanced users)
+  global:
+    -c, --config <configDir>         Application path, default: /Users/<user>/.gdrive
+    --refresh-token <refreshToken>   Oauth refresh token used to get access token (for advanced users)
+    --access-token <accessToken>     Oauth access token, only recommended for short-lived requests because of short lifetime   (for advanced users)
 
-options:
+  options:
   -m, --max <maxFiles>       Max files to list, default: 30
-  -q, --query <query>        Default query: "trashed = false and 'me' in owners". See https://developers.google.com/drive/search-parameters
+  -q, --query <query>        Default query: "trashed = false and 'me' in owners". See   https://developers.google.com/drive/search-parameters
   --order <sortOrder>        Sort order. See https://godoc.org/google.golang.org/api/drive/v3#FilesListCall.OrderBy
   --name-width <nameWidth>   Width of name column, default: 40, minimum: 9, use 0 for full width
   --absolute                 Show absolute path to file (will only show path from first parent)
