@@ -4,20 +4,32 @@ Bash Shell to install gdrive on linux X64
 
   It installs gdrive-linux-x64 on the directory, makes it executable and prompt for the verification code.
 
- Gdrive 2 instructions from prasmussen/gdrive
+## Gdrive 2
+Gdrive 2 is more or less a full rewrite and is not backwards compatible
+with gdrive 1 as all the command line arguments has changed slightly.
+Gdrive 2 uses version 3 of the google drive api and my google-api-go-client
+fork is no longer needed.
 
-  Gdrive 2 is more or less a full rewrite and is not backwards compatible with gdrive 1 as all the command line arguments has changed slightly. Gdrive 2 uses version 3 of the google drive api and my google-api-go-client fork is no longer needed.
+### Syncing
+Gdrive 2 supports basic syncing. It only syncs one way at the time and works
+more like rsync than e.g. dropbox. Files that are synced to google drive
+are tagged with an appProperty so that the files on drive can be traversed
+faster. This means that you can't upload files with `gdrive upload` into
+a sync directory as the files would be missing the sync tag, and would be
+ignored by the sync commands.
+The current implementation is slow and uses a lot of memory if you are
+syncing many files. Currently only one file is uploaded at the time,
+the speed can be improved in the future by uploading several files concurrently.
+To learn more see usage and the examples below.
 
-  Syncing
+#### .gdriveignore
+Placing a .gdriveignore in the root of your sync directory can be used to
+skip certain files from being synced. .gdriveignore follows the same
+rules as [.gitignore](https://git-scm.com/docs/gitignore).
 
-  Gdrive 2 supports basic syncing. It only syncs one way at the time and works more like rsync than e.g. dropbox. Files that are synced to google drive are tagged with an appProperty so that the files on drive can be traversed faster. This means that you can't upload files with gdrive upload into a sync directory as the files would be missing the sync tag, and would be ignored by the sync commands. The current implementation is slow and uses a lot of memory if you are syncing many files. Currently only one file is uploaded at the time, the speed can be improved in the future by uploading several files concurrently. To learn more see usage and the examples below.
 
-  .gdriveignore
-
-Placing a .gdriveignore in the root of your sync directory can be used to skip certain files from being synced. .gdriveignore follows the same rules as .gitignore.
-
-  Usage
-
+## Usage
+```
 gdrive [global] list [options]                                 List files
 gdrive [global] download [options] <fileId>                    Download file or directory
 gdrive [global] download query [options] <query>               Download all files and directories matching query
@@ -47,28 +59,36 @@ gdrive version                                                 Print application
 gdrive help                                                    Print help
 gdrive help <command>                                          Print command help
 gdrive help <command> <subcommand>                             Print subcommand help
-List files
+```
 
-  gdrive [global] list [options]
+#### List files
+```
+gdrive [global] list [options]
 
-  global:
-    -c, --config <configDir>         Application path, default: /Users/<user>/.gdrive
-    --refresh-token <refreshToken>   Oauth refresh token used to get access token (for advanced users)
-    --access-token <accessToken>     Oauth access token, only recommended for short-lived requests because of short lifetime   (for advanced users)
+global:
+  -c, --config <configDir>         Application path, default: /Users/<user>/.gdrive
+  --refresh-token <refreshToken>   Oauth refresh token used to get access token (for advanced users)
+  --access-token <accessToken>     Oauth access token, only recommended for short-lived requests because of short lifetime (for advanced users)
 
-  options:
+options:
   -m, --max <maxFiles>       Max files to list, default: 30
-  -q, --query <query>        Default query: "trashed = false and 'me' in owners". See   https://developers.google.com/drive/search-parameters
+  -q, --query <query>        Default query: "trashed = false and 'me' in owners". See https://developers.google.com/drive/search-parameters
   --order <sortOrder>        Sort order. See https://godoc.org/google.golang.org/api/drive/v3#FilesListCall.OrderBy
   --name-width <nameWidth>   Width of name column, default: 40, minimum: 9, use 0 for full width
   --absolute                 Show absolute path to file (will only show path from first parent)
   --no-header                Dont print the header
   --bytes                    Size in bytes
+```
+
 List file in subdirectory
 
-./gdrive list --query " 'IdOfTheParentFolder' in parents"
-Download file or directory
 
+```
+./gdrive list --query " 'IdOfTheParentFolder' in parents"
+```
+
+#### Download file or directory
+```
 gdrive [global] download [options] <fileId>
 
 global:
@@ -84,8 +104,10 @@ options:
   --no-progress         Hide progress
   --stdout              Write file content to stdout
   --timeout <timeout>   Set timeout in seconds, use 0 for no timeout. Timeout is reached when no data is transferred in set amount of seconds, default: 300
-Download all files and directories matching query
+```
 
+#### Download all files and directories matching query
+```
 gdrive [global] download query [options] <query>
 
 global:
@@ -98,8 +120,10 @@ options:
   -r, --recursive   Download directories recursively, documents will be skipped
   --path <path>     Download path
   --no-progress     Hide progress
-Upload file or directory
+```
 
+#### Upload file or directory
+```
 gdrive [global] upload [options] <path>
 
 global:
@@ -118,8 +142,10 @@ options:
   --delete                      Delete local file when upload is successful
   --timeout <timeout>           Set timeout in seconds, use 0 for no timeout. Timeout is reached when no data is transferred in set amount of seconds, default: 300
   --chunksize <chunksize>       Set chunk size in bytes, default: 8388608
-Upload file from stdin
+```
 
+#### Upload file from stdin
+```
 gdrive [global] upload - [options] <name>
 
 global:
@@ -135,8 +161,10 @@ options:
   --share                       Share file
   --timeout <timeout>           Set timeout in seconds, use 0 for no timeout. Timeout is reached when no data is transferred in set amount of seconds, default: 300
   --no-progress                 Hide progress
-Update file, this creates a new revision of the file
+```
 
+#### Update file, this creates a new revision of the file
+```
 gdrive [global] update [options] <fileId> <path>
 
 global:
@@ -152,8 +180,10 @@ options:
   --mime <mime>                 Force mime type
   --timeout <timeout>           Set timeout in seconds, use 0 for no timeout. Timeout is reached when no data is transferred in set amount of seconds, default: 300
   --chunksize <chunksize>       Set chunk size in bytes, default: 8388608
-Show file info
+```
 
+#### Show file info
+```
 gdrive [global] info [options] <fileId>
 
 global:
@@ -163,8 +193,10 @@ global:
 
 options:
   --bytes   Show size in bytes
-Create directory
+```
 
+#### Create directory
+```
 gdrive [global] mkdir [options] <name>
 
 global:
@@ -175,8 +207,10 @@ global:
 options:
   -p, --parent <parent>         Parent id of created directory, can be specified multiple times to give many parents
   --description <description>   Directory description
-Share file or directory
+```
 
+#### Share file or directory
+```
 gdrive [global] share [options] <fileId>
 
 global:
@@ -190,24 +224,30 @@ options:
   --email <email>   The email address of the user or group to share the file with. Requires 'user' or 'group' as type
   --discoverable    Make file discoverable by search engines
   --revoke          Delete all sharing permissions (owner roles will be skipped)
-List files permissions
+```
 
+#### List files permissions
+```
 gdrive [global] share list <fileId>
 
 global:
   -c, --config <configDir>         Application path, default: /Users/<user>/.gdrive
   --refresh-token <refreshToken>   Oauth refresh token used to get access token (for advanced users)
   --access-token <accessToken>     Oauth access token, only recommended for short-lived requests because of short lifetime (for advanced users)
-Revoke permission
+```
 
+#### Revoke permission
+```
 gdrive [global] share revoke <fileId> <permissionId>
 
 global:
   -c, --config <configDir>         Application path, default: /Users/<user>/.gdrive
   --refresh-token <refreshToken>   Oauth refresh token used to get access token (for advanced users)
   --access-token <accessToken>     Oauth access token, only recommended for short-lived requests because of short lifetime (for advanced users)
-Delete file or directory
+```
 
+#### Delete file or directory
+```
 gdrive [global] delete [options] <fileId>
 
 global:
@@ -217,8 +257,10 @@ global:
 
 options:
   -r, --recursive   Delete directory and all it's content
-List all syncable directories on drive
+```
 
+#### List all syncable directories on drive
+```
 gdrive [global] sync list [options]
 
 global:
@@ -228,8 +270,10 @@ global:
 
 options:
   --no-header   Dont print the header
-List content of syncable directory
+```
 
+#### List content of syncable directory
+```
 gdrive [global] sync content [options] <fileId>
 
 global:
@@ -242,8 +286,10 @@ options:
   --path-width <pathWidth>   Width of path column, default: 60, minimum: 9, use 0 for full width
   --no-header                Dont print the header
   --bytes                    Size in bytes
-Sync drive directory to local directory
+```
 
+#### Sync drive directory to local directory
+```
 gdrive [global] sync download [options] <fileId> <path>
 
 global:
@@ -259,8 +305,10 @@ options:
   --dry-run             Show what would have been transferred
   --no-progress         Hide progress
   --timeout <timeout>   Set timeout in seconds, use 0 for no timeout. Timeout is reached when no data is transferred in set amount of seconds, default: 300
-Sync local directory to drive
+```
 
+#### Sync local directory to drive
+```
 gdrive [global] sync upload [options] <path> <fileId>
 
 global:
@@ -277,8 +325,10 @@ options:
   --no-progress             Hide progress
   --timeout <timeout>       Set timeout in seconds, use 0 for no timeout. Timeout is reached when no data is transferred in set amount of seconds, default: 300
   --chunksize <chunksize>   Set chunk size in bytes, default: 8388608
-List file changes
+```
 
+#### List file changes
+```
 gdrive [global] changes [options]
 
 global:
@@ -292,8 +342,10 @@ options:
   --now                      Get latest page token
   --name-width <nameWidth>   Width of name column, default: 40, minimum: 9, use 0 for full width
   --no-header                Dont print the header
-List file revisions
+```
 
+#### List file revisions
+```
 gdrive [global] revision list [options] <fileId>
 
 global:
@@ -305,8 +357,10 @@ options:
   --name-width <nameWidth>   Width of name column, default: 40, minimum: 9, use 0 for full width
   --no-header                Dont print the header
   --bytes                    Size in bytes
-Download revision
+```
 
+#### Download revision
+```
 gdrive [global] revision download [options] <fileId> <revId>
 
 global:
@@ -320,16 +374,20 @@ options:
   --stdout              Write file content to stdout
   --path <path>         Download path
   --timeout <timeout>   Set timeout in seconds, use 0 for no timeout. Timeout is reached when no data is transferred in set amount of seconds, default: 300
-Delete file revision
+```
 
+#### Delete file revision
+```
 gdrive [global] revision delete <fileId> <revId>
 
 global:
   -c, --config <configDir>         Application path, default: /Users/<user>/.gdrive
   --refresh-token <refreshToken>   Oauth refresh token used to get access token (for advanced users)
   --access-token <accessToken>     Oauth access token, only recommended for short-lived requests because of short lifetime (for advanced users)
-Upload and convert file to a google document, see 'about import' for available conversions
+```
 
+#### Upload and convert file to a google document, see 'about import' for available conversions
+```
 gdrive [global] import [options] <path>
 
 global:
@@ -340,8 +398,10 @@ global:
 options:
   -p, --parent <parent>   Parent id, used to upload file to a specific directory, can be specified multiple times to give many parents
   --no-progress           Hide progress
-Export a google document
+```
 
+#### Export a google document
+```
 gdrive [global] export [options] <fileId>
 
 global:
@@ -353,8 +413,10 @@ options:
   -f, --force     Overwrite existing file
   --mime <mime>   Mime type of exported file
   --print-mimes   Print available mime types for given file
-Google drive metadata, quota usage
+```
 
+#### Google drive metadata, quota usage
+```
 gdrive [global] about [options]
 
 global:
@@ -364,26 +426,32 @@ global:
 
 options:
   --bytes   Show size in bytes
-Show supported import formats
+```
 
+#### Show supported import formats
+```
 gdrive [global] about import
 
 global:
   -c, --config <configDir>         Application path, default: /Users/<user>/.gdrive
   --refresh-token <refreshToken>   Oauth refresh token used to get access token (for advanced users)
   --access-token <accessToken>     Oauth access token, only recommended for short-lived requests because of short lifetime (for advanced users)
-Show supported export formats
+```
 
+#### Show supported export formats
+```
 gdrive [global] about export
 
 global:
   -c, --config <configDir>         Application path, default: /Users/<user>/.gdrive
   --refresh-token <refreshToken>   Oauth refresh token used to get access token (for advanced users)
   --access-token <accessToken>     Oauth access token, only recommended for short-lived requests because of short lifetime (for advanced users)
-Examples
+```
 
-List files
 
+## Examples
+#### List files
+```
 $ gdrive list
 Id                             Name                    Type   Size     Created
 0B3X9GlR6EmbnZ3gyeGw4d3ozbUk   drive-windows-x64.exe   bin    6.6 MB   2015-07-18 16:43:58
@@ -391,47 +459,65 @@ Id                             Name                    Type   Size     Created
 0B3X9GlR6EmbnVjIzMDRqck1aekE   drive-osx-x64           bin    6.5 MB   2015-07-18 16:43:50
 0B3X9GlR6EmbnbEpXdlhza25zT1U   drive-osx-386           bin    5.2 MB   2015-07-18 16:43:41
 0B3X9GlR6Embnb095MGxEYmJhY2c   drive-linux-x64         bin    6.5 MB   2015-07-18 16:43:38
-List largest files
+```
 
+#### List largest files
+```
 $ gdrive list --query "name contains 'gdrive'" --order "quotaBytesUsed desc" -m 3
 Id                             Name                     Type   Size     Created
 0B3X9GlR6EmbnZXpDRG1xblM2LTg   gdrive-linux-mips64      bin    8.5 MB   2016-02-22 21:07:04
 0B3X9GlR6EmbnNW5CTV8xdFkxTjg   gdrive-linux-mips64le    bin    8.5 MB   2016-02-22 21:07:07
 0B3X9GlR6EmbnZ1NGS25FdEVlWEk   gdrive-osx-x64           bin    8.3 MB   2016-02-21 20:22:13
-Upload file
+```
 
+#### Upload file
+```
 $ gdrive upload gdrive-osx-x64
 Uploading gdrive-osx-x64
 Uploaded 0B3X9GlR6EmbnZ1NGS25FdEVlWEk at 3.8 MB/s, total 8.3 MB
-Make directory
+```
 
+#### Make directory
+```
 $ gdrive mkdir gdrive-bin
 Directory 0B3X9GlR6EmbnY1RLVTk5VUtOVkk created
-Upload file to directory
+```
 
+#### Upload file to directory
+```
 $ gdrive upload --parent 0B3X9GlR6EmbnY1RLVTk5VUtOVkk gdrive-osx-x64
 Uploading gdrive-osx-x64
 Uploaded 0B3X9GlR6EmbnNTk0SkV0bm5Hd0E at 2.5 MB/s, total 8.3 MB
-Download file
+```
 
+#### Download file
+```
 $ gdrive download 0B3X9GlR6EmbnZ1NGS25FdEVlWEk
 Downloading gdrive-osx-x64 -> gdrive-osx-x64
 Downloaded 0B3X9GlR6EmbnZ1NGS25FdEVlWEk at 8.3 MB/s, total 8.3 MB
-Share a file
+```
 
+#### Share a file
+```
 $ gdrive share 0B3X9GlR6EmbnNTk0SkV0bm5Hd0E
 Granted reader permission to anyone
-Pipe content directly to google drive
+```
 
+#### Pipe content directly to google drive
+```
 $ echo "Hello World" | gdrive upload - hello.txt
 Uploading hello.txt
 Uploaded 0B3X9GlR6EmbnaXVrOUpIcWlUS0E at 8.0 B/s, total 12.0 B
-Print file to stdout
+```
 
+#### Print file to stdout
+```
 $ gdrive download --stdout 0B3X9GlR6EmbnaXVrOUpIcWlUS0E
 Hello World
-Get file info
+```
 
+#### Get file info
+```
 $ gdrive info 0B3X9GlR6EmbnNTk0SkV0bm5Hd0E
 Id: 0B3X9GlR6EmbnNTk0SkV0bm5Hd0E
 Name: gdrive-osx-x64
@@ -445,32 +531,44 @@ Shared: True
 Parents: 0B3X9GlR6EmbnY1RLVTk5VUtOVkk
 ViewUrl: https://drive.google.com/file/d/0B3X9GlR6EmbnNTk0SkV0bm5Hd0E/view?usp=drivesdk
 DownloadUrl: https://docs.google.com/uc?id=0B3X9GlR6EmbnNTk0SkV0bm5Hd0E&export=download
-Update file (create new revision)
+```
 
+#### Update file (create new revision)
+```
 $ gdrive update 0B3X9GlR6EmbnNTk0SkV0bm5Hd0E gdrive-osx-x64
 Uploading gdrive-osx-x64
 Updated 0B3X9GlR6EmbnNTk0SkV0bm5Hd0E at 2.0 MB/s, total 8.3 MB
-List file revisions
+```
 
+#### List file revisions
+```
 $ gdrive revision list 0B3X9GlR6EmbnNTk0SkV0bm5Hd0E
 Id                                                    Name             Size     Modified              KeepForever
 0B3X9GlR6EmbnOFlHSTZQNWJWMGN2ckZucC9VaEUwczV1cUNrPQ   gdrive-osx-x64   8.3 MB   2016-02-21 20:47:04   False
 0B3X9GlR6EmbndVEwMlZCUldGWUlPb2lTS25rOFo1L2t6c2ZVPQ   gdrive-osx-x64   8.3 MB   2016-02-21 21:12:09   False
-Download revision
+```
 
+#### Download revision
+```
 $ gdrive revision download 0B3X9GlR6EmbnNTk0SkV0bm5Hd0E 0B3X9GlR6EmbnOFlHSTZQNWJWMGN2ckZucC9VaEUwczV1cUNrPQ
 Downloading gdrive-osx-x64 -> gdrive-osx-x64
 Download complete, rate: 8.3 MB/s, total size: 8.3 MB
-Export google doc as docx
+```
 
+#### Export google doc as docx
+```
 $ gdrive export --mime application/vnd.openxmlformats-officedocument.wordprocessingml.document 1Kt5A8X7X2RQrEi5t6Y9W1LayRc4hyrFiG63y2dIJEvk
 Exported 'foo.docx' with mime type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-Import csv as google spreadsheet
+```
 
+#### Import csv as google spreadsheet
+```
 $ gdrive import foo.csv
 Imported 1mTl3DjIvap4tpTX_oMkDcbDT8ShtiGJRlozTfkXpeko with mime type: 'application/vnd.google-apps.spreadsheet'
-Syncing directory to drive
+```
 
+#### Syncing directory to drive
+```
 # Create directory on drive
 $ gdrive mkdir drive-bin
 Directory 0B3X9GlR6EmbnOEd6cEh6bU9XZWM created
@@ -543,8 +641,10 @@ Found 33 local files and 33 remote files
 1 local files has changed
 [0001/0001] Updating readme.txt -> drive-bin/readme.txt
 Sync finished in 1.890244258s
-List content of sync directory
+```
 
+#### List content of sync directory
+```
 $ gdrive sync content 0B3X9GlR6EmbnOEd6cEh6bU9XZWM
 Id                             Path                             Type   Size     Modified
 0B3X9GlR6EmbnMldxMFV1UGVMTlE   bsd                              dir             2016-02-21 22:54:00
@@ -580,3 +680,4 @@ Id                             Path                             Type   Size     
 0B3X9GlR6EmbnNE5ySkEzbWQ4Qms   windows                          dir             2016-02-21 22:54:03
 0B3X9GlR6EmbnX1RIT2w1TWZYWFU   windows/gdrive-windows-386.exe   bin    6.1 MB   2016-02-21 22:55:15
 0B3X9GlR6EmbndmVMU05POGRPS3c   windows/gdrive-windows-x64.exe   bin    7.8 MB   2016-02-21 22:55:18
+```
